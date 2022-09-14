@@ -12,6 +12,7 @@ import javax.persistence.PrePersist;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+import javax.validation.constraints.Email;
 
 @Entity
 @Table(name = "clientes")
@@ -20,8 +21,12 @@ public class Cliente implements Serializable {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
+
 	private String nombre;
 	private String apellido;
+
+	@Email
+	@Column(unique = true)
 	private String email;
 
 	@Column(name = "created_at")
@@ -68,6 +73,10 @@ public class Cliente implements Serializable {
 
 	public void setApellido(String apellido) {
 		this.apellido = apellido;
+	}
+
+	public String getNombreCompleto() {
+		return this.nombre.concat(" ").concat(this.apellido);
 	}
 
 	public String getEmail() {
