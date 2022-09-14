@@ -8,6 +8,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.PrePersist;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
@@ -38,6 +39,11 @@ public class Cliente implements Serializable {
 		this.apellido = apellido;
 		this.email = email;
 		this.createdAt = createdAt;
+	}
+
+	@PrePersist
+	private void prePersist() {
+		this.createdAt = new Date();
 	}
 
 	public Long getId() {
