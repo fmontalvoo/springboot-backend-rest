@@ -3,11 +3,15 @@ package com.fmontalvoo.springboot.api.controller;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+
+import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -41,20 +45,44 @@ public class ClienteController {
 	}
 
 	@PostMapping
-	public ResponseEntity<?> save(@RequestBody Cliente cliente) {
-		Map<String, String> response = new HashMap<String, String>();
+	public ResponseEntity<?> save(@Valid @RequestBody Cliente cliente, BindingResult result) {
+		Map<String, Object> response = new HashMap<String, Object>();
+
+		if (result.hasErrors()) {
+
+			List<String> errors = result.getFieldErrors().stream()
+					.map(err -> err.getField().concat(": ").concat(err.getDefaultMessage()))
+					.collect(Collectors.toList());
+
+			response.put("mensaje", "Los datos ingresados no son correctos");
+			response.put("datos_erroneos", errors);
+			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.BAD_REQUEST);
+		}
+
 		try {
 			service.save(cliente);
 			return new ResponseEntity<Cliente>(cliente, HttpStatus.CREATED);
 		} catch (DataAccessException e) {
-			response.put("mensaje", e.getMessage().concat(": ").concat(e.getMostSpecificCause().getMessage()));
-			return new ResponseEntity<Map<String, String>>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+			response.put("mensaje", e.getMessage().concat("-> ").concat(e.getMostSpecificCause().getMessage()));
+			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
 	@PutMapping("/{id}")
-	public ResponseEntity<?> update(@PathVariable Long id, @RequestBody Cliente nuevo) {
-		Map<String, String> response = new HashMap<String, String>();
+	public ResponseEntity<?> update(@PathVariable Long id, @Valid @RequestBody Cliente nuevo, BindingResult result) {
+		Map<String, Object> response = new HashMap<String, Object>();
+
+		if (result.hasErrors()) {
+
+			List<String> errors = result.getFieldErrors().stream()
+					.map(err -> err.getField().concat("-> ").concat(err.getDefaultMessage()))
+					.collect(Collectors.toList());
+
+			response.put("mensaje", "Los datos ingresados no son correctos");
+			response.put("datos_erroneos", errors);
+			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.BAD_REQUEST);
+		}
+
 		try {
 			Cliente cliente = service.findById(id).map(cli -> {
 				cli.setEmail(nuevo.getEmail());
@@ -66,13 +94,13 @@ public class ClienteController {
 
 			if (cliente == null) {
 				response.put("mensaje", "Usuario no encontrado");
-				return new ResponseEntity<Map<String, String>>(response, HttpStatus.NOT_FOUND);
+				return new ResponseEntity<Map<String, Object>>(response, HttpStatus.NOT_FOUND);
 			}
 
 			return new ResponseEntity<Cliente>(cliente, HttpStatus.CREATED);
 		} catch (DataAccessException e) {
 			response.put("mensaje", e.getMessage().concat(": ").concat(e.getMostSpecificCause().getMessage()));
-			return new ResponseEntity<Map<String, String>>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 

@@ -13,6 +13,8 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
 
 @Entity
 @Table(name = "clientes")
@@ -22,10 +24,15 @@ public class Cliente implements Serializable {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
+	@NotBlank
+	@Size(min = 3, max = 512)
 	private String nombre;
+
+	@NotBlank
 	private String apellido;
 
 	@Email
+	@NotBlank
 	@Column(unique = true)
 	private String email;
 
